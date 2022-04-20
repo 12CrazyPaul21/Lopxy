@@ -7,6 +7,7 @@ edition = "2021"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.10.1"
+winapi = { version = "0.3", features = ["wininet"] }
 
 [dependencies]
 cfg-if = "1.0.0"
