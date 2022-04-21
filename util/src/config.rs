@@ -55,6 +55,115 @@ cfg_if::cfg_if! {
         }
     } else if #[cfg(target_os = "macos")] {
 
+        use std::process::Command;
+
+        fn normalize_server(server: &str) -> String {
+            match server.find(":") {
+                Some(_) => server.to_string(),
+                None => format!("http://{}", server)
+            }
+        }
+
+        fn build_address(server: &str) -> Option<networksetup::Address> {
+            let server = normalize_server(server);
+            let url = match url::Url::parse(&server) {
+                Ok(url) => url,
+                Err(_) => return None
+            }
+
+            let host = format!("{}", url.host()?);
+            let port = format!("{}", url.port_or_known_default()?);
+
+            Some(networksetup::new(host, port))
+        }
+
+        fn get_network_proxy_config(network: &'static str) -> Option<String> {
+            let output = match Command::new("networksetup").args(["-getwebproxy", network]).output() {
+                Ok(v) => v,
+                Err(_) => return None
+            };
+        
+            if !output.status.success() {
+                return None;
+            }
+        
+            let match String::from_utf8(output.stdout) {
+                Ok(v) => v,
+                Err(_) => return None
+            };
+
+            let captures = match Regex::new(&format!("(?:{0}: )(?P<{0}>[^\r\n]+)", item)) {
+                Ok(r) => r,
+                Err(_) => return None
+            }.captures(&config)?;
+        
+            Some(captures[item].to_string())
+        }
+
+        ///
+        /// Get Current Network Interface
+        /// 
+        /// # Panics
+        /// 
+        /// not implemented
+        pub fn get_current_network() -> Option<String> {
+            panic!("<mac> get_current_network stub")
+        }
+
+        ///
+        /// Get Network Proxy Server With networksetup Command
+        ///
+        /// # Shell Command
+        /// 
+        /// ```bash
+        /// networksetup -getwebproxy {network interface} | awk {'print $2'} | awk {'getline l2; getline l3; print l2":"l3'} | head -n 1
+        /// # output like:
+        /// #   Server: server_address
+        /// #   Port: 8001
+        /// #   ...
+        /// ```
+        /// 
+        pub fn get_network_proxy_server(network: &'static str) -> Option<String> {
+            format!("{0}:{1}", get_network_proxy_config("network", "Server")?, get_network_proxy_config("network", "Port")?)
+        }
+
+        ///
+        /// Set Network Proxy Server
+        ///
+        pub fn set_network_proxy_server(network: &'static str, server: &str) -> bool {
+            let addr = match build_address(server) {
+                Some(v) => v,
+                None => return false
+            };
+
+            return networksetup::web_proxy(networksetup::Network::Name(network), networksetup::Config::Value(&addr)).is_ok();
+        }
+
+        ///
+        /// Is Network Proxy Enabled With networksetup Command
+        ///
+        /// # Shell Command
+        /// ```bash
+        /// networksetup -getwebproxy {network interface} | awk {'print $2'} | head -n 1
+        /// # output like:
+        /// #   Enabled: Yes
+        /// #   ...
+        /// ```
+        pub fn is_network_proxy_enabled(network: &'static str) -> bool {
+            match get_network_proxy_config(network, "Enabled") {
+                Some(enabled) => enabled.find("Yes").is_some(),
+                None => false
+            }
+        }
+
+        ///
+        /// Set Network Proxy Enabled
+        /// 
+        pub fn set_network_proxy_enabled(network: &'static str, enabled: bool) -> bool {
+            use networksetup::Config;
+            return networksetup::web_proxy(networksetup::Network::Name(network), if enabled { Config::On } else { Config::Off }).is_ok();
+        }
+
     } else if #[cfg(target_os = "linux")] {
 
     }

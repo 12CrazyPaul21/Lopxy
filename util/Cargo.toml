@@ -9,6 +9,10 @@ edition = "2021"
 winreg = "0.10.1"
 winapi = { version = "0.3", features = ["wininet"] }
 
+[target.'cfg(mac)'.dependencies]
+networksetup = "*"
+url = "2.2.2"
+
 [dependencies]
 cfg-if = "1.0.0"
 dirs = "4.0.0"

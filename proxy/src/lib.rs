@@ -46,45 +46,53 @@ impl ProxyConfig {
     ///
     /// # Panics
     ///
-    /// The `system_proxy` function will panic if the target os isn't windows,
+    /// The `system_proxy` function will panic if the target os neighter windows nor mac,
     /// because the `system_proxy` of other system are not implemented now.
+    #[cfg(target_os = "windows")]
     pub fn system_proxy() -> Option<ProxyConfig> {
-        let mut proxy_enabled = false;
-        let mut proxy_server: Option<String> = None;
-        let mut proxy_override: Option<String> = None;
+        let proxy_enabled = config::get_register_hkcu_value::<u32>(
+            config::INTERNET_SETTINGS_SUB_KEY,
+            r"ProxyEnable",
+        )
+        .unwrap_or(0u32)
+            > 0;
 
-        if cfg!(windows) {
-            proxy_enabled = config::get_register_hkcu_value::<u32>(
-                config::INTERNET_SETTINGS_SUB_KEY,
-                r"ProxyEnable",
-            )
-            .unwrap_or(0u32)
-                > 0;
-            proxy_server = match config::get_register_hkcu_value::<String>(
-                config::INTERNET_SETTINGS_SUB_KEY,
-                "ProxyServer",
-            ) {
-                Ok(v) => Some(v),
-                Err(_) => None,
-            };
-            proxy_override = match config::get_register_hkcu_value::<String>(
-                config::INTERNET_SETTINGS_SUB_KEY,
-                "ProxyOverride",
-            ) {
-                Ok(v) => Some(v),
-                Err(_) => None,
-            }
-        } else if cfg!(macos) {
-            panic!(r"<macos> system_proxy stub");
-        } else if cfg!(linux) {
-            panic!(r"<linux> system_proxy stub");
-        }
+        let proxy_server = match config::get_register_hkcu_value::<String>(
+            config::INTERNET_SETTINGS_SUB_KEY,
+            "ProxyServer",
+        ) {
+            Ok(v) => Some(v),
+            Err(_) => None,
+        };
+
+        let proxy_override = match config::get_register_hkcu_value::<String>(
+            config::INTERNET_SETTINGS_SUB_KEY,
+            "ProxyOverride",
+        ) {
+            Ok(v) => Some(v),
+            Err(_) => None,
+        };
 
         Some(ProxyConfig {
             enabled: proxy_enabled,
             proxy_server,
             proxy_override,
         })
+    }
+
+    #[cfg(target_os = "mac")]
+    pub fn system_proxy() -> Option<ProxyConfig> {
+        let network = config::get_current_network()?;
+        Some(ProxyConfig {
+            enabled: config::is_network_proxy_enabled(network),
+            proxy_server: config::get_network_proxy_server(network),
+            proxy_override: None,
+        })
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn system_proxy() -> Option<ProxyConfig> {
+        panic!(r"<linux> system_proxy stub");
     }
 
     ///
