@@ -1,9 +1,16 @@
 #![allow(dead_code)]
 
+use std::sync::Mutex;
+use std::collections::VecDeque;
+
+use chrono::prelude::*;
 use sysinfo::SystemExt;
+use serde_derive::{Serialize, Deserialize};
+
 use util::config;
 
 use super::args::*;
+use super::config::*;
 
 struct LopxyInstance {
     pid: u32,
@@ -109,10 +116,26 @@ impl LopxyInstance {
     }
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LopxyProxyRequestStatus {
+    pub timestamp: String,
+    pub pid: u32,
+    pub path: String,
+    pub status: String,
+}
+
+impl LopxyProxyRequestStatus {
+    pub fn quota() -> usize {
+        500
+    }
+}
+
 pub struct LopxyEnv {
     pub config_dir: std::path::PathBuf,
+    pub config: Option<LopxyConfig>,
     pub command_args: LopxyCommand,
+    pub proxy_shutdown: proxy::async_shutdown::Shutdown,
+    pub request_status_logs: Mutex<VecDeque<LopxyProxyRequestStatus>>
 }
 
 impl LopxyEnv {
@@ -121,7 +144,10 @@ impl LopxyEnv {
 
         Some(LopxyEnv {
             config_dir,
+            config: None,
             command_args: args.command,
+            proxy_shutdown: proxy::async_shutdown::Shutdown::new(),
+            request_status_logs: Mutex::new(VecDeque::new())
         })
     }
 
@@ -146,6 +172,56 @@ impl LopxyEnv {
         }
     }
 
+    pub fn modify_args<'a>(&'a self) -> Option<&'a ModifyArgs> {
+        match &self.command_args {
+            LopxyCommand::Modify(arg) => Some(arg),
+            _ => None,
+        }
+    }
+
+    pub fn clone_proxy_shutdown(&self) -> proxy::async_shutdown::Shutdown {
+        self.proxy_shutdown.clone()
+    }
+
+    ///
+    /// Get Config.toml path
+    /// 
+    pub fn config_path(&mut self) -> String {
+        let mut config_path = self.config_dir.clone();
+        config_path.push("config.toml");
+        config_path.to_str().expect("get lopxy config file path failed").to_string()
+    }
+
+    ///
+    /// Load lopxy config
+    /// 
+    pub fn load_config<'a>(&'a mut self) -> &'a mut LopxyConfig {
+        if self.config.is_some() {
+            return self.config.as_mut().unwrap();
+        }
+
+        let config_path = self.config_path();
+        self.config = Some(LopxyConfig::load(&config_path));
+
+        self.config.as_mut().unwrap()
+    }
+
+    ///
+    /// Save lopxy config
+    /// 
+    pub fn save_config(&mut self) -> bool {
+        let config_path = self.config_path();
+
+        if let Some(config) = self.config.as_mut() {
+            return match config.save(&config_path) {
+                Ok(_) => true,
+                Err(_) => false
+            }
+        }
+
+        false
+    }
+
     ///
     /// Check lopxy instance and decide whether to switch to background
     ///
@@ -153,7 +229,7 @@ impl LopxyEnv {
         // check instance
         if LopxyInstance::instance(&self.config_dir).is_some() {
             println!("lopxy is already running...");
-            std::process::exit(1);
+            std::process::exit(0);
         }
 
         // switch to background
@@ -177,5 +253,39 @@ impl LopxyEnv {
     pub fn web_manager_instance(&self) -> Option<String> {
         let instance = LopxyInstance::instance(&self.config_dir)?;
         Some(format!("http://{}", instance.web_manager_url()))
+    }
+
+    ///
+    /// Record proxy request status
+    /// 
+    /// # Notes
+    /// Only record exception request
+    pub fn report_proxy_request_status(&mut self, pid: u32, path: String, status: String) {
+        let record = &mut *self.request_status_logs.lock().unwrap();
+
+        if record.len() >= LopxyProxyRequestStatus::quota() {
+            match record.pop_front() { _ => {} }
+        }
+
+        record.push_back(LopxyProxyRequestStatus {
+            timestamp: Local::now().to_string(),
+            pid,
+            path,
+            status
+        });
+    }
+
+    ///
+    /// Get proxy request status logs
+    ///
+    pub fn proxy_request_status_logs(&self) -> String {
+        let record = &*self.request_status_logs.lock().unwrap();
+        serde_json::to_string(&record).unwrap_or("[]".to_string())
+    }
+}
+
+impl Drop for LopxyEnv {
+    fn drop(&mut self) {
+        self.save_config();
     }
 }

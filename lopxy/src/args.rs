@@ -26,6 +26,18 @@ pub enum LopxyCommand {
 
     /// Remove Proxy Item
     Remove(RemoveArgs),
+
+    /// Modify Proxy Item
+    Modify(ModifyArgs),
+
+    /// Enable Lopxy Proxy
+    Enable,
+
+    /// Disable Lopxy Proxy
+    Disable,
+
+    /// Get Lopxy Server Status
+    Status,
 }
 
 #[derive(Args, Debug)]
@@ -59,10 +71,25 @@ pub struct AddArgs {
 
     #[clap(short, long, help = "proxy resource url")]
     pub proxy_resource_url: String,
+
+    #[clap(short, long, help = "proxy resource content type MIME, only used for local scheme", default_value = "application/octet-stream")]
+    pub content_type: String,
 }
 
 #[derive(Args, Debug)]
 pub struct RemoveArgs {
     #[clap(short, long, help = "resource url")]
     pub resource_url: String,
+}
+
+#[derive(Args, Debug)]
+pub struct ModifyArgs {
+    #[clap(short, long, help = "resource url")]
+    pub resource_url: String,
+
+    #[clap(short, long, help = "proxy resource url")]
+    pub proxy_resource_url: String,
+
+    #[clap(short, long, help = "proxy resource content type MIME, only used for local scheme")]
+    pub content_type: String,
 }

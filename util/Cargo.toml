@@ -12,7 +12,12 @@ winapi = { version = "0.3", features = ["wininet"] }
 [target.'cfg(mac)'.dependencies]
 networksetup = "*"
 url = "2.2.2"
+daemonize = "0.4.1"
+
+[target.'cfg(linux)'.dependencies]
+daemonize = "0.4.1"
 
 [dependencies]
 cfg-if = "1.0.0"
 dirs = "4.0.0"
+netstat = "0.7.0"

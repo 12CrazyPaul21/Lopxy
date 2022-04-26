@@ -22,7 +22,7 @@ cfg_if::cfg_if! {
                 stderr(std::process::Stdio::null()).
                 spawn().
                 expect("running in background failed");
-            process::exit(1);
+            process::exit(0);
         }
 
     } else {
@@ -38,7 +38,7 @@ cfg_if::cfg_if! {
         /// 
         /// # Notes
         /// 
-        /// not test certificates available
+        /// Not test certificates available
         pub fn daemon() {
             let stdout = File::create("/dev/null").unwrap();
             let stderr = File::create("/dev/null").unwrap();
@@ -48,7 +48,7 @@ cfg_if::cfg_if! {
                 stdout(stdout).
                 stderr(stderr).
                 expect("running in background failed");
-            process::exit(1);
+            process::exit(0);
         }
     }
 }
