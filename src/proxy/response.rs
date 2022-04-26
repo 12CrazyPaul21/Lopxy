@@ -63,7 +63,7 @@ pub fn build_404_response() -> Vec<u8> {
 
     raw_response_bytes.extend_from_slice(b"HTTP/1.1 404 Not Found\r\ncontent-type: text/html; charset=utf-8\r\n\r\n");
     raw_response_bytes.extend_from_slice(b"<html><head><title>404 Not Found</title></head>");
-    raw_response_bytes.extend_from_slice(b"<body><center><h1>404 Not Found</h1></center></body></html>");
+    raw_response_bytes.extend_from_slice(b"<body style=\"background-color: #e62b60\"><center style=\"margin-top: 10%\"><h1>404 Not Found</h1></center></body></html>");
 
     raw_response_bytes
 }
@@ -73,7 +73,7 @@ pub fn build_502_response() -> Vec<u8> {
 
     raw_response_bytes.extend_from_slice(b"HTTP/1.1 502 Bad Gateway\r\ncontent-type: text/html; charset=utf-8\r\n\r\n");
     raw_response_bytes.extend_from_slice(b"<html><head><title>502 Bad Gateway</title></head>");
-    raw_response_bytes.extend_from_slice(b"<body><center><h1>502 Bad Gateway</h1></center></body></html>");
+    raw_response_bytes.extend_from_slice(b"<body style=\"background-color: #e62b60\"><center style=\"margin-top: 10%\"><h1>502 Bad Gateway</h1></center></body></html>");
 
     raw_response_bytes
 }

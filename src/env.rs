@@ -118,9 +118,9 @@ impl LopxyInstance {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LopxyProxyRequestStatus {
-    pub timestamp: String,
+    pub timestamp: i64,
     pub pid: u32,
     pub path: String,
     pub status: String,
@@ -130,6 +130,23 @@ impl LopxyProxyRequestStatus {
     pub fn quota() -> usize {
         500
     }
+
+    pub fn report(&self) -> LopxyProxyRequestStatus {
+        LopxyProxyRequestStatus {
+            timestamp: self.timestamp,
+            pid: self.pid,
+            path: self.path.clone(),
+            status: self.status.clone()
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LopxyStatusReport {
+    pub updated: bool,
+    pub timestamp: i64,
+    pub proxy_enabled: bool,
+    pub request_status_logs: Vec<LopxyProxyRequestStatus>
 }
 
 pub struct LopxyEnv {
@@ -138,7 +155,8 @@ pub struct LopxyEnv {
     pub config: Option<LopxyConfig>,
     pub command_args: LopxyCommand,
     pub proxy_shutdown: proxy::async_shutdown::Shutdown,
-    pub request_status_logs: Mutex<VecDeque<LopxyProxyRequestStatus>>
+    pub request_status_logs: Mutex<VecDeque<LopxyProxyRequestStatus>>,
+    pub status_refresh_timestamp: i64
 }
 
 impl LopxyEnv {
@@ -154,7 +172,8 @@ impl LopxyEnv {
             config: None,
             command_args: args.command,
             proxy_shutdown: proxy::async_shutdown::Shutdown::new(),
-            request_status_logs: Mutex::new(VecDeque::new())
+            request_status_logs: Mutex::new(VecDeque::new()),
+            status_refresh_timestamp: 0
         })
     }
 
@@ -288,8 +307,10 @@ impl LopxyEnv {
             match record.pop_front() { _ => {} }
         }
 
+        self.status_refresh_timestamp = Local::now().timestamp_millis();
+
         record.push_back(LopxyProxyRequestStatus {
-            timestamp: Local::now().to_string(),
+            timestamp: self.status_refresh_timestamp,
             pid,
             path,
             status
@@ -302,6 +323,32 @@ impl LopxyEnv {
     pub fn proxy_request_status_logs(&self) -> String {
         let record = &*self.request_status_logs.lock().unwrap();
         serde_json::to_string(&record).unwrap_or("[]".to_string())
+    }
+
+    ///
+    /// Get lopxy status
+    /// 
+    pub fn lopxy_status(&mut self, timestamp: i64) -> String {
+        let mut report = LopxyStatusReport {
+            updated: false,
+            timestamp: timestamp,
+            proxy_enabled: proxy::ProxyConfig::is_system_proxy_enabled(),
+            request_status_logs: vec![]
+        };
+
+        if self.status_refresh_timestamp > timestamp {
+            report.updated = true;
+            report.timestamp = self.status_refresh_timestamp;
+
+            let records = &*self.request_status_logs.lock().unwrap();
+            for item in records {
+                if item.timestamp > timestamp {
+                    report.request_status_logs.push(item.report());
+                }
+            }
+        }
+
+        serde_json::to_string(&report).unwrap_or("{\"updated\": false}".to_string())
     }
 }
 

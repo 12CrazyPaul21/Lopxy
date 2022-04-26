@@ -10,7 +10,7 @@ use urlencoding::encode;
 
 use controller::*;
 
-async fn launch(port: u32, controller: LopxyManagerServerControllerArc, shutdown_sign: mpsc::Receiver<bool>) -> Result<(), rocket::Error> {
+async fn launch(port: u32, static_assets_dir: String, controller: LopxyManagerServerControllerArc, shutdown_sign: mpsc::Receiver<bool>) -> Result<(), rocket::Error> {
     let config = rocket::Config {
         address: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
         port: port as u16,
@@ -26,6 +26,8 @@ async fn launch(port: u32, controller: LopxyManagerServerControllerArc, shutdown
             rocket.manage(LopxyManagerServerStatus::new(controller))
         })).
         mount("/", lopxy_web_manager_routes()).
+        mount("/", rocket::fs::FileServer::from(static_assets_dir)).
+        register("/", lopxy_web_manager_catcher()).
         ignite().
         await?;
     let shutdown = server.shutdown();
@@ -46,14 +48,16 @@ async fn launch(port: u32, controller: LopxyManagerServerControllerArc, shutdown
 
 pub struct LopxyManagerServer {
     port: u32,
+    static_assets_dir: String,
     controller: LopxyManagerServerControllerArc,
     shutdown_sign_trigger: Option<mpsc::Sender<bool>>
 }
 
 impl LopxyManagerServer {
-    pub fn build(port: u32, controller: LopxyManagerServerControllerArc) -> LopxyManagerServer {
+    pub fn build(port: u32, static_assets_dir: String, controller: LopxyManagerServerControllerArc) -> LopxyManagerServer {
         LopxyManagerServer {
             port,
+            static_assets_dir,
             controller,
             shutdown_sign_trigger: None
         }
@@ -71,9 +75,10 @@ impl LopxyManagerServer {
 
         let server_port = self.port;
         let server_controller = Arc::clone(&self.controller);
+        let static_assets_dir = self.static_assets_dir.clone();
         
         rocket::tokio::spawn(async move {
-            launch(server_port, server_controller, shutdown_sign).await.expect("web manager server launch failed");
+            launch(server_port, static_assets_dir, server_controller, shutdown_sign).await.expect("web manager server launch failed");
         })
     }
 

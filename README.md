@@ -82,6 +82,7 @@ http://127.0.0.1:8283
 - 添加proxy条目时，content-type只对本地文件有效，默认为application/octet-stream
 - 对于本地文件使用file://作为协议的scheme前缀
 - 如果启动lopxy服务前，系统已经存在代理，那么lopxy会重新应用先前的代理执行请求
+- 尽量使用lopxy stop命令或者在管理界面上关闭lopxy，否则可能导致系统代理设置不会还原
 
 ## License
 

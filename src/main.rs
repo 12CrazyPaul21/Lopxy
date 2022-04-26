@@ -71,6 +71,7 @@ async fn start_server(mut controller: controller::LopxyController) {
     lopxy_env.guard_instance();
 
     // release static assets
+    let static_assets_dir = lopxy_env.static_assets_dir().to_str().unwrap().to_string();
     lopxy_env.release_static_assets();
 
     // get start args ref
@@ -83,7 +84,7 @@ async fn start_server(mut controller: controller::LopxyController) {
     let controller = Arc::new(Mutex::new(controller));
 
     // start manager server
-    let mut web_manager_server = manager::LopxyManagerServer::build(web_manager_port, controller.clone());
+    let mut web_manager_server = manager::LopxyManagerServer::build(web_manager_port, static_assets_dir, controller.clone());
     let web_manager_server_future = web_manager_server.start();
 
     // build proxy config
