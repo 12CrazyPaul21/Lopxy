@@ -60,6 +60,9 @@ async fn run(mut controller: controller::LopxyController) {
         },
         args::LopxyCommand::Status => {
             lopxy_status(controller).await;
+        },
+        args::LopxyCommand::Manager => {
+            open_web_manager_page_in_browser(controller).await;
         }
     }
 }
@@ -96,6 +99,9 @@ async fn start_server(mut controller: controller::LopxyController) {
 
     // start proxy server
     let proxy_server_future = proxy::Proxy::start(system_proxy_config.clone(), proxy_config, proxy_shutdown, controller.clone());
+
+    // open web manager page
+    match webbrowser::open(&format!("http://127.0.0.1:{}", web_manager_port)) { _ => {} }
 
     // wait for all server
     match futures::join!(web_manager_server_future, proxy_server_future) { _ => {} }
@@ -251,4 +257,17 @@ async fn lopxy_status(mut controller: controller::LopxyController) {
             .await
             .unwrap_or(false)
     );
+}
+
+async fn open_web_manager_page_in_browser(mut controller: controller::LopxyController) {
+    let lopxy_env = controller.env();
+    let web_manager_instance = match lopxy_env.web_manager_instance() {
+        Some(s) => s,
+        None => {
+            println!("lopxy not running...");
+            std::process::exit(1);
+        }
+    };
+
+    webbrowser::open(&web_manager_instance).expect("open web manager page in browser failed");
 }

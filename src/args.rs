@@ -38,6 +38,9 @@ pub enum LopxyCommand {
 
     /// Get Lopxy Server Status
     Status,
+
+    /// Open Web Manager Page in Browser
+    Manager,
 }
 
 #[derive(Args, Debug)]

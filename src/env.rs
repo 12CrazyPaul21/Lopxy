@@ -143,9 +143,11 @@ impl LopxyProxyRequestStatus {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LopxyStatusReport {
+    pub web_manager_port: u32,
+    pub proxy_port: u32,
+    pub proxy_enabled: bool,
     pub updated: bool,
     pub timestamp: i64,
-    pub proxy_enabled: bool,
     pub request_status_logs: Vec<LopxyProxyRequestStatus>
 }
 
@@ -329,10 +331,14 @@ impl LopxyEnv {
     /// Get lopxy status
     /// 
     pub fn lopxy_status(&mut self, timestamp: i64) -> String {
+        let start_args = self.start_args().unwrap();
+        
         let mut report = LopxyStatusReport {
+            web_manager_port: start_args.web_manager_port,
+            proxy_port: start_args.proxy_port,
+            proxy_enabled: proxy::ProxyConfig::is_system_proxy_enabled(),
             updated: false,
             timestamp: timestamp,
-            proxy_enabled: proxy::ProxyConfig::is_system_proxy_enabled(),
             request_status_logs: vec![]
         };
 
