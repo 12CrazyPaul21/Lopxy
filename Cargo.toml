@@ -1,7 +1,7 @@
 [package]
 name = "lopxy"
 version = "0.1.0"
-edition = "2022"
+edition = "2021"
 description = "lopxy is a local proxy server tool for some unreachable remote tiny file"
 license = "Apache-2.0"
 

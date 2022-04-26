@@ -81,6 +81,7 @@ http://127.0.0.1:8283
 - 添加proxy条目时，如果uri带中文等象形文字，需要是UTF-8编码，最好使用urlencoding来编码uri
 - 添加proxy条目时，content-type只对本地文件有效，默认为application/octet-stream
 - 对于本地文件使用file://作为协议的scheme前缀
+- 如果启动lopxy服务前，系统已经存在代理，那么lopxy会重新应用先前的代理执行请求
 
 ## License
 
