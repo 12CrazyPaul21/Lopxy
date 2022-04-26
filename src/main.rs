@@ -14,6 +14,7 @@ mod controller;
 mod manager;
 mod proxy;
 mod util;
+mod assets;
 
 use clap::Parser;
 use std::sync::Arc;
@@ -68,6 +69,9 @@ async fn start_server(mut controller: controller::LopxyController) {
 
     // check lopxy instance and decide whether to switch to background
     lopxy_env.guard_instance();
+
+    // release static assets
+    lopxy_env.release_static_assets();
 
     // get start args ref
     let start_args = lopxy_env.start_args().unwrap();

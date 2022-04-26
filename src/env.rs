@@ -134,6 +134,7 @@ impl LopxyProxyRequestStatus {
 
 pub struct LopxyEnv {
     pub config_dir: std::path::PathBuf,
+    pub static_assets_dir: std::path::PathBuf,
     pub config: Option<LopxyConfig>,
     pub command_args: LopxyCommand,
     pub proxy_shutdown: proxy::async_shutdown::Shutdown,
@@ -144,8 +145,12 @@ impl LopxyEnv {
     pub fn collect(args: LopxyArgs) -> Option<LopxyEnv> {
         let config_dir = config::program_config_dir(env!("CARGO_PKG_NAME"))?;
 
+        let mut static_assets_dir = config_dir.clone();
+        static_assets_dir.push("static");
+
         Some(LopxyEnv {
             config_dir,
+            static_assets_dir,
             config: None,
             command_args: args.command,
             proxy_shutdown: proxy::async_shutdown::Shutdown::new(),
@@ -222,6 +227,20 @@ impl LopxyEnv {
         }
 
         false
+    }
+
+    ///
+    /// Release static assets
+    /// 
+    pub fn release_static_assets(&self) {
+        super::assets::force_release(&self.static_assets_dir).expect("release static assets failed");
+    }
+
+    ///
+    /// Get static folder path
+    /// 
+    pub fn static_assets_dir<'a>(&'a self) -> &'a std::path::PathBuf {
+        &self.static_assets_dir
     }
 
     ///
