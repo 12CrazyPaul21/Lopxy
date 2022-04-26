@@ -2,9 +2,6 @@ pub mod controller;
 pub mod request;
 pub mod response;
 
-#[macro_use]
-extern crate rocket;
-
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::net::{IpAddr, Ipv4Addr};
@@ -81,6 +78,7 @@ impl LopxyManagerServer {
     }
 
     #[deprecated]
+    #[allow(dead_code)]
     pub fn shutdown(&mut self) {
         if let Some(trigger) = &self.shutdown_sign_trigger {
             match trigger.send(true) { _ => {} };

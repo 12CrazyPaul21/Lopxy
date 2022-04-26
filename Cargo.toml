@@ -1,8 +1,39 @@
-[workspace]
+[package]
+name = "lopxy"
+version = "0.1.0"
+edition = "2021"
 
-members = [
-    "lopxy",
-    "util",
-    "manager",
-    "proxy"
-]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.10.1"
+winapi = { version = "0.3", features = ["wininet"] }
+
+[target.'cfg(mac)'.dependencies]
+networksetup = "*"
+url = "2.2.2"
+daemonize = "0.4.1"
+
+[target.'cfg(linux)'.dependencies]
+daemonize = "0.4.1"
+
+[dependencies]
+clap = { version = "3.1.8", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+futures = { version = "0.3.21", features = ["async-await"] }
+sysinfo = "0.23.10"
+url = "2.2.2"
+toml = "0.5.9"
+serde = "1.0.136"
+serde_derive = "1.0.136"
+serde_json = "1.0.79"
+chrono = "0.4.19"
+cfg-if = "1.0.0"
+dirs = "4.0.0"
+netstat = "0.7.0"
+async-std = "1.11.0"
+async-shutdown = "0.1.2"
+httparse = "1.7.0"
+rocket = "0.5.0-rc.1"
+reqwest = { version = "0.11", features = ["json", "blocking"] }
+urlencoding = "2.1.0"

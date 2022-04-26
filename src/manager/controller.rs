@@ -5,7 +5,7 @@ use rocket::form::Form;
 use urlencoding::decode;
 
 use super::request::*;
-use proxy::item::*;
+use super::super::proxy::item::*;
 
 pub type LopxyManagerServerControllerArc = Arc<Mutex<dyn LopxyManagerServerController + Send>>;
 

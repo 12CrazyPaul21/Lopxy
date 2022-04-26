@@ -1,5 +1,7 @@
 use super::env;
 
+use super::manager;
+use super::proxy;
 use proxy::item::*;
 
 pub struct LopxyController {

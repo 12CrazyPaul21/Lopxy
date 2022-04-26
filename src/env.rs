@@ -7,10 +7,12 @@ use chrono::prelude::*;
 use sysinfo::SystemExt;
 use serde_derive::{Serialize, Deserialize};
 
-use util::config;
-
+use super::proxy;
 use super::args::*;
 use super::config::*;
+use super::util;
+
+use util::config;
 
 struct LopxyInstance {
     pid: u32,

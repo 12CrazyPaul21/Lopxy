@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub mod item;
 pub mod controller;
 pub mod request;
@@ -6,12 +8,10 @@ pub mod stream;
 
 pub use async_shutdown;
 
-extern crate util;
-
 use async_std::io::WriteExt;
 use async_std::net::{TcpListener, TcpStream, SocketAddr};
 
-use util::config;
+use super::util::config;
 use controller::*;
 
 /// Default Proxy Server

@@ -19,9 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": [
-                "start"
-            ],
+            "args": [],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -38,44 +36,6 @@
                 "filter": {
                     "name": "lopxy",
                     "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in library 'proxy'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=proxy"
-                ],
-                "filter": {
-                    "name": "proxy",
-                    "kind": "lib"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in library 'web'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=web"
-                ],
-                "filter": {
-                    "name": "web",
-                    "kind": "lib"
                 }
             },
             "args": [],

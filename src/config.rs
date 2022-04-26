@@ -2,7 +2,7 @@
 
 use serde_derive::{Serialize, Deserialize};
 
-use proxy::item::*;
+use super::proxy::item::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LopxyConfig {

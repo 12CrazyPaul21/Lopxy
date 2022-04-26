@@ -7,6 +7,8 @@ use std::sync::Mutex;
 use super::ProxyClient;
 use super::item::*;
 
+use super::super::util::netstat;
+
 pub type LopxyProxyServerControllerArc = Arc<Mutex<dyn LopxyProxyServerController + Send>>;
 
 pub trait LopxyProxyServerController {
@@ -62,7 +64,7 @@ pub async fn handle_lopxy_proxy_client(mut client: ProxyClient) {
 
     // client port to process id
     let client_port = client.addr.port();
-    let pid = match super::util::netstat::tcp_port_to_pid(client_port) {
+    let pid = match netstat::tcp_port_to_pid(client_port) {
         Some(pid) => pid, 
         None => {
             eprintln!("get proxy request client pid failed");

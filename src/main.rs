@@ -4,10 +4,16 @@
 //! lopxy is a local proxy server tool for some unreachable remote tiny file.
 //! 
 
+#[macro_use]
+extern crate rocket;
+
 mod args;
 mod env;
 mod config;
 mod controller;
+mod manager;
+mod proxy;
+mod util;
 
 use clap::Parser;
 use std::sync::Arc;
