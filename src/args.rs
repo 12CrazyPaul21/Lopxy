@@ -59,6 +59,10 @@ pub struct StartArgs {
         parse(from_flag)
     )]
     pub daemon: bool,
+
+    #[cfg(target_os = "mac")]
+    #[clap(short, long, help = "network interface")]
+    pub network_interface: String,
 }
 
 #[derive(Args, Debug)]
@@ -75,7 +79,12 @@ pub struct AddArgs {
     #[clap(short, long, help = "proxy resource url")]
     pub proxy_resource_url: String,
 
-    #[clap(short, long, help = "proxy resource content type MIME, only used for local scheme", default_value = "application/octet-stream")]
+    #[clap(
+        short,
+        long,
+        help = "proxy resource content type MIME, only used for local scheme",
+        default_value = "application/octet-stream"
+    )]
     pub content_type: String,
 }
 
@@ -93,6 +102,10 @@ pub struct ModifyArgs {
     #[clap(short, long, help = "proxy resource url")]
     pub proxy_resource_url: String,
 
-    #[clap(short, long, help = "proxy resource content type MIME, only used for local scheme")]
+    #[clap(
+        short,
+        long,
+        help = "proxy resource content type MIME, only used for local scheme"
+    )]
     pub content_type: String,
 }

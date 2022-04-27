@@ -1,5 +1,8 @@
 extern crate dirs;
 
+#[cfg(target_os = "mac")]
+extern crate lazy_static;
+
 use std::path;
 
 cfg_if::cfg_if! {
@@ -57,6 +60,18 @@ cfg_if::cfg_if! {
 
         use std::process::Command;
 
+        use lazy_static::lazy_static;
+        use std::collections::HashMap;
+        use std::sync::Mutex;
+
+        lazy_static! {
+            static ref DEFAULT_SYSTEM_NETWORK_INTERFACE: Mutex<HashMap<u32, String>> = {
+                Mutex::new(HashMap::from([
+                    (0, "Wi-Fi".to_string())
+                ]))
+            };
+        }
+
         fn normalize_server(server: &str) -> String {
             match server.find(":") {
                 Some(_) => server.to_string(),
@@ -82,11 +97,11 @@ cfg_if::cfg_if! {
                 Ok(v) => v,
                 Err(_) => return None
             };
-        
+
             if !output.status.success() {
                 return None;
             }
-        
+
             let match String::from_utf8(output.stdout) {
                 Ok(v) => v,
                 Err(_) => return None
@@ -96,25 +111,29 @@ cfg_if::cfg_if! {
                 Ok(r) => r,
                 Err(_) => return None
             }.captures(&config)?;
-        
+
             Some(captures[item].to_string())
         }
 
         ///
+        /// Set Current Network Interface
+        ///
+        pub fn set_current_network(network_interface: String) {
+            DEFAULT_SYSTEM_NETWORK_INTERFACE.lock().unwrap().insert(0, network_interface);
+        }
+
+        ///
         /// Get Current Network Interface
-        /// 
-        /// # Panics
-        /// 
-        /// not implemented
+        ///
         pub fn get_current_network() -> Option<String> {
-            panic!("<mac> get_current_network stub")
+            Some(DEFAULT_SYSTEM_NETWORK_INTERFACE.lock().unwrap().get(&0).unwrap().clone())
         }
 
         ///
         /// Get Network Proxy Server With networksetup Command
         ///
         /// # Shell Command
-        /// 
+        ///
         /// ```bash
         /// networksetup -getwebproxy {network interface} | awk {'print $2'} | awk {'getline l2; getline l3; print l2":"l3'} | head -n 1
         /// # output like:
@@ -122,7 +141,7 @@ cfg_if::cfg_if! {
         /// #   Port: 8001
         /// #   ...
         /// ```
-        /// 
+        ///
         pub fn get_network_proxy_server(network: &'static str) -> Option<String> {
             format!("{0}:{1}", get_network_proxy_config("network", "Server")?, get_network_proxy_config("network", "Port")?)
         }
@@ -158,7 +177,7 @@ cfg_if::cfg_if! {
 
         ///
         /// Set Network Proxy Enabled
-        /// 
+        ///
         pub fn set_network_proxy_enabled(network: &'static str, enabled: bool) -> bool {
             use networksetup::Config;
             return networksetup::web_proxy(networksetup::Network::Name(network), if enabled { Config::On } else { Config::Off }).is_ok();

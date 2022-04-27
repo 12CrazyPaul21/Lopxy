@@ -67,6 +67,21 @@ async fn run(mut controller: controller::LopxyController) {
     }
 }
 
+#[cfg(target_os = "windows")]
+fn init_proxy_env(_start_args: &args::StartArgs) {
+    // do nothing
+}
+
+#[cfg(target_os = "mac")]
+fn init_proxy_env(start_args: &args::StartArgs) {
+    util::config::set_current_network(start_args.network_interface.clone());
+}
+
+#[cfg(target_os = "linux")]
+fn init_proxy_env(_start_args: &args::StartArgs) {
+    panic!("<linux> get_current_network stub")
+}
+
 async fn start_server(mut controller: controller::LopxyController) {
     let lopxy_env = controller.env();
 
@@ -79,6 +94,9 @@ async fn start_server(mut controller: controller::LopxyController) {
 
     // get start args ref
     let start_args = lopxy_env.start_args().unwrap();
+
+    // init proxy env
+    init_proxy_env(&start_args);
 
     // wrap controller
     let web_manager_port = start_args.web_manager_port;

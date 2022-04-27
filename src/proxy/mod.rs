@@ -120,7 +120,8 @@ impl ProxyConfig {
 
     #[cfg(target_os = "mac")]
     pub fn is_system_proxy_enabled() -> bool {
-        panic!(r"<mac> is_system_proxy_enabled stub");
+        let network = config::get_current_network()?;
+        config::is_network_proxy_enabled(network)
     }
 
     #[cfg(target_os = "linux")]
@@ -141,7 +142,8 @@ impl ProxyConfig {
 
     #[cfg(target_os = "mac")]
     pub fn set_system_proxy_enabled(enabled: bool) {
-        panic!(r"<mac> set_system_proxy_enabled stub");
+        let network = config::get_current_network()?;
+        config::set_network_proxy_enabled(network, enabled);
     }
 
     #[cfg(target_os = "linux")]
@@ -190,7 +192,17 @@ impl ProxyConfig {
 
     #[cfg(target_os = "mac")]
     pub fn update_system_proxy(&self) -> std::io::Result<()> {
-        panic!(r"<macos> update_system_proxy stub");
+        let network = match config::get_current_network() {
+            Some(network) => network,
+            None => {
+                return Err(std::io::Error::from(std::io::ErrorKind::InvalidData));
+            }
+        };
+
+        ProxyConfig::set_system_proxy_enabled(self.enabled());
+        ProxyConfig::set_network_proxy_server(network, self.proxy_server);
+
+        Ok(())
     }
 
     #[cfg(target_os = "linux")]
