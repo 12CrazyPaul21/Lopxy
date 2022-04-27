@@ -1,11 +1,16 @@
 [package]
 name = "lopxy"
 version = "0.1.2"
+authors = [
+    "huzhiqin <604916833@qq.com>"
+]
 edition = "2021"
 description = "lopxy is a local proxy server tool for some unreachable remote tiny file"
 license = "Apache-2.0"
 repository = "https://github.com/12CrazyPaul21/lopxy"
 documentation = "https://docs.rs/lopxy"
+keywords = ["proxy"]
+categories = ["network-programming"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
