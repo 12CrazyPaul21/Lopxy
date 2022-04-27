@@ -79,6 +79,7 @@ http://127.0.0.1:8283
 - 对于http的长连接（Keep-Alive）会话，除了第一个请求，后序的请求目前不接管
 - 最好只用于接管小文件，对于大文件还未测试过
 - 添加proxy条目时，如果uri带中文等象形文字，需要是UTF-8编码，最好使用urlencoding来编码uri
+- 添加proxy条目时，资源的uri如果指定的是http://www.test.com这样不带子路径的可能会失效
 - 添加proxy条目时，content-type只对本地文件有效，默认为application/octet-stream
 - 对于本地文件使用file://作为协议的scheme前缀
 - 如果启动lopxy服务前，系统已经存在代理，那么lopxy会重新应用先前的代理执行请求

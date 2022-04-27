@@ -29,7 +29,7 @@ pub trait LopxyManagerServerController {
     fn set_system_proxy_enabled(&mut self, enabled: bool) -> bool;
 
     fn proxy_request_logs(&mut self) -> String;
-    fn lopxy_status(&mut self, timestamp: i64) -> String;
+    fn lopxy_status(&mut self, config_timestamp: i64, status_log_timestamp: i64) -> String;
 }
 
 pub struct LopxyManagerServerStatus {
@@ -106,9 +106,9 @@ fn proxy_request_logs(state: &rocket::State<LopxyManagerServerStatus>) -> Json<S
     Json(state.controller.lock().unwrap().proxy_request_logs())
 }
 
-#[get("/status/<timestamp>")]
-fn lopxy_status<'r>(state: &rocket::State<LopxyManagerServerStatus>, timestamp: i64) -> Json<String> {
-    Json(state.controller.lock().unwrap().lopxy_status(timestamp))
+#[get("/status?<config_timestamp>&<status_log_timestamp>")]
+fn lopxy_status<'r>(state: &rocket::State<LopxyManagerServerStatus>, config_timestamp: i64, status_log_timestamp: i64) -> Json<String> {
+    Json(state.controller.lock().unwrap().lopxy_status(config_timestamp, status_log_timestamp))
 }
 
 #[catch(404)]

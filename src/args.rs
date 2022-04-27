@@ -3,7 +3,7 @@
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about = "lopxy is a local proxy tool.", long_about = None, subcommand_required = false)]
+#[clap(author, version, about = "lopxy is a local proxy server tool for some unreachable remote tiny file.", long_about = None, subcommand_required = false)]
 pub struct LopxyArgs {
     #[clap(subcommand)]
     pub command: LopxyCommand,

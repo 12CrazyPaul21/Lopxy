@@ -65,8 +65,8 @@ impl manager::controller::LopxyManagerServerController for LopxyController {
         self.env.proxy_request_status_logs()
     }
 
-    fn lopxy_status(&mut self, timestamp: i64) -> String {
-        self.env.lopxy_status(timestamp)
+    fn lopxy_status(&mut self, config_timestamp: i64, status_log_timestamp: i64) -> String {
+        self.env.lopxy_status(config_timestamp, status_log_timestamp)
     }
 }
 

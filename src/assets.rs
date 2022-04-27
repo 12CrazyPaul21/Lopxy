@@ -64,11 +64,13 @@ pub fn force_release(asset_folder: &std::path::PathBuf) -> std::io::Result<()> {
 pub fn collect() -> HashMap::<String, Vec<u8>> {
     collect_assets!([
         "favicon.ico" = "../static/favicon.ico",
+        "lopxy.png" = "../static/lopxy.png",
         "index.html" = "../static/index.html",
         "index.js" = "../static/index.js",
         "index.css" = "../static/index.css",
         "thirdparty/jquery.min.js" = "../static/thirdparty/jquery.min.js",
         "thirdparty/bootstrap.min.js" = "../static/thirdparty/bootstrap.min.js",
+        "thirdparty/popper.min.js" = "../static/thirdparty/popper.min.js",
         "thirdparty/bootstrap.min.css" = "../static/thirdparty/bootstrap.min.css"
     ])
 }

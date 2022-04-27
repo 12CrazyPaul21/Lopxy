@@ -2,17 +2,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="thirdparty/jquery.min.js"></script>
-    <script src="thirdparty/bootstrap.min.js"></script>
-    <script src="index.js"></script>
     <link rel="stylesheet" type="text/css" href="thirdparty/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="index.css">
+    <script src="thirdparty/jquery.min.js"></script>
+    <script src="thirdparty/popper.min.js"></script>
+    <script src="thirdparty/bootstrap.min.js"></script>
+    <script src="index.js"></script>
     <title>Lopxy Web Manager</title>
 </head>
-<body>
+<body onload="lopxy.init()">
     <div class="container">
-        <div class="lopxy-splash-screen">
-            <div class="lopxy-splash-screen-loading">
+        <div id="lopxy-splash-screen">
+            <div class="lopxy-splash-screen-icon" style="margin-top: 8%">
+                <img src="lopxy.png" alt="lopxy icon">
+            </div>
+            <h3 id="lopxy-init-status">Lopxy Loading</h3>
+            <div class="lopxy-splash-screen-loading-animation">
                 <div class="spinner-grow text-muted"></div>
                 <div class="spinner-grow text-primary"></div>
                 <div class="spinner-grow text-success"></div>
@@ -24,9 +29,222 @@
                 <div class="spinner-grow text-light"></div>
             </div>
         </div>
+        <div id="lopxy-web-manager-container" class="lopxy-hide">
+            <div id="lopxy-web-manager-header">
+                <h1>
+                    <button type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#lopxy-shutdown-dialog">关闭Lopxy</button>
+                    <a href="https://github.com/12CrazyPaul21/Lopxy">
+                        <span>LOPXY</span><img src="lopxy.png" alt="lopxy icon" width="60px" height="60px">
+                    </a>
+                </h1>
+            </div>
+            <div id="lopxy-server-status-panel" class="lopxy-panel">
+                <h4 class="lopxy-panel-header">
+                    <a href="#lopxy-server-status-panel">#Lopxy服务状态</a>
+                </h4>
+                <div class="lopxy-panel-container">
+                    <table class="table table-dark table-hover table-borderless lopxy-table">
+                        <tbody>
+                            <tr>
+                                <td>Web Manager Port : </td>
+                                <td id="lopxy-web-manager-port">0</td>
+                            </tr>
+                            <tr>
+                                <td>Proxy Server Port : </td>
+                                <td id="lopxy-proxy-server-port">0</td>
+                            </tr>
+                            <tr>
+                                <td style="vertical-align: middle;">Proxy Server Status : </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button id="lopxy-proxy-enabled" type="button" class="btn btn-primary btn-sm">启用</button>
+                                        <button type="button" class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
+                                            <span class="caret"></span>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <button id="lopxy-enable-proxy" class="dropdown-item">启用</button>
+                                            <button id="lopxy-disable-proxy" class="dropdown-item">禁用</button>
+                                        </div>
+                                      </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="lopxy-proxy-items-panel" class="lopxy-panel">
+                <h4 class="lopxy-panel-header">
+                    <a href="#lopxy-proxy-items-panel">#Proxy条目</a>
+                    <div class="lopxy-proxy-btns-panel">
+                        <button id="lopxy-add-proxy-item-btn" type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#lopxy-add-proxy-item-dialog">添加</button>
+                    </div>
+                </h4>
+                <div class="lopxy-panel-container">
+                    <table id="lopxy-proxy-items-table" class="table table-dark table-hover table-borderless lopxy-table">
+                        <thead>
+                            <tr>
+                                <th style="vertical-align: middle;">原始URI</th>
+                                <th style="vertical-align: middle;">替换URI</th>
+                                <th style="vertical-align: middle;">Content-Type</th>
+                                <th style="vertical-align: middle;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="lopxy-reqeust-status-logs-panel" class="lopxy-panel">
+                <h4 class="lopxy-panel-header">
+                    <a href="#lopxy-reqeust-status-logs-panel">#异常请求监控日志</a>
+                    <div class="lopxy-proxy-btns-panel">
+                        <button id="lopxy-clean-request-status-logs-btn" type="button" class="btn btn-outline-dark btn-sm">清空</button>
+                        <button id="lopxy-refresh-request-status-logs-btn" type="button" class="btn btn-outline-dark btn-sm">刷新</button>
+                        <button id="lopxy-auto-refresh-enabled-btn" type="button" class="btn btn-outline-dark btn-sm">关闭自动刷新</button>
+                    </div>
+                </h4>
+                <div class="lopxy-panel-container">
+                    <table id="lopxy-request-status-logs-table" class="table table-dark table-hover table-borderless lopxy-table">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 100px; vertical-align: middle;">日期</th>
+                                <th style="min-width: 120px; vertical-align: middle;">进程名</th>
+                                <th style="min-width: 80px; vertical-align: middle;">PID</th>
+                                <th style="vertical-align: middle;">资源路径</th>
+                                <th style="vertical-align: middle;">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="lopxy-web-manager-footer">
+                <a href="https://github.com/12CrazyPaul21/Lopxy">Visit Lopxy GitHub Repository</a>
+            </div>
+        </div>
+        <div id="lopxy-shutdown-screen" class="lopxy-hide">
+            <div class="lopxy-splash-screen-icon" style="margin-top: 8%">
+                <img src="lopxy.png" alt="lopxy icon">
+            </div>
+            <h3>Lopxy is Already Stopped</h3>
+            <button type="button" class="btn btn-outline-dark" onclick="javascript:window.open('','_self').close();">点击关闭页面</button>
+        </div>
+    </div>
 
-        <div class="lopxy-container">
-            <h1>lopxy</h1>
+    <!-- 关闭lopxy提示对话框 -->
+    <div id="lopxy-shutdown-dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">提示</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <h3>是否关闭Lopxy</h3>
+                </div>
+                <div class="modal-footer">
+                    <button id="lopxy-confirm-shutdown-btn" type="button" class="btn btn-danger">确定关闭</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加lopxy proxy item对话框 -->
+    <div id="lopxy-add-proxy-item-dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">添加Proxy Item</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <table class="table lopxy-table">
+                        <thead>
+                          <tr>
+                            <th>资源URI</th>
+                            <th>替换资源URI</th>
+                            <th>ContentType</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                                <input id="lopxy-add-proxy-item-resource-url" type="text" class="form-control">
+                            </td>
+                            <td>
+                                <input id="lopxy-add-proxy-item-proxy-resource-url" type="text" class="form-control">
+                            </td>
+                            <td>
+                                <input id="lopxy-add-proxy-item-content-type" type="text" class="form-control" value="application/octet-stream">
+                            </td>
+                          </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="lopxy-confirm-add-proxy-item-btn" type="button" class="btn btn-primary">添加</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改lopxy proxy item对话框 -->
+    <div id="lopxy-modify-proxy-item-dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">修改Proxy Item</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <table class="table lopxy-table">
+                        <thead>
+                          <tr>
+                            <th>资源URI</th>
+                            <th>替换资源URI</th>
+                            <th>ContentType</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td id="lopxy-modify-proxy-item-resource-url"></td>
+                            <td>
+                                <input id="lopxy-modify-proxy-item-proxy-resource-url" type="text" class="form-control">
+                            </td>
+                            <td>
+                                <input id="lopxy-modify-proxy-item-content-type" type="text" class="form-control">
+                            </td>
+                          </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="lopxy-confirm-modify-proxy-item-btn" type="button" class="btn btn-primary">修改</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 删除lopxy proxy item提示对话框 -->
+    <div id="lopxy-remove-proxy-item-tips-dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">提示</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <h4>是否删除该Proxy Item</h4>
+                </div>
+                <div class="modal-footer">
+                    <button id="lopxy-confirm-remove-proxy-item-btn" type="button" class="btn btn-danger">确定删除</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </div>
         </div>
     </div>
 </body>

@@ -5,6 +5,8 @@ use std::collections::VecDeque;
 
 use chrono::prelude::*;
 use sysinfo::SystemExt;
+use sysinfo::ProcessExt;
+use sysinfo::{Pid, PidExt};
 use serde_derive::{Serialize, Deserialize};
 
 use super::proxy;
@@ -57,7 +59,6 @@ impl LopxyInstance {
         };
 
         // check process exists
-        use sysinfo::{Pid, PidExt};
         let mut system = sysinfo::System::default();
         system.refresh_all();
         system.process(Pid::from_u32(pid))?;
@@ -122,6 +123,7 @@ impl LopxyInstance {
 pub struct LopxyProxyRequestStatus {
     pub timestamp: i64,
     pub pid: u32,
+    pub bin_name: String,
     pub path: String,
     pub status: String,
 }
@@ -135,6 +137,7 @@ impl LopxyProxyRequestStatus {
         LopxyProxyRequestStatus {
             timestamp: self.timestamp,
             pid: self.pid,
+            bin_name: self.bin_name.clone(),
             path: self.path.clone(),
             status: self.status.clone()
         }
@@ -143,12 +146,15 @@ impl LopxyProxyRequestStatus {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LopxyStatusReport {
+    pub success: bool,
     pub web_manager_port: u32,
     pub proxy_port: u32,
     pub proxy_enabled: bool,
     pub updated: bool,
-    pub timestamp: i64,
-    pub request_status_logs: Vec<LopxyProxyRequestStatus>
+    pub status_log_timestamp: i64,
+    pub request_status_logs: Vec<LopxyProxyRequestStatus>,
+    pub config_timestamp: i64,
+    pub proxy_items: Vec<proxy::item::ProxyItem>
 }
 
 pub struct LopxyEnv {
@@ -311,9 +317,25 @@ impl LopxyEnv {
 
         self.status_refresh_timestamp = Local::now().timestamp_millis();
 
+        // get process bin name
+        let bin_name = {
+            let mut system = sysinfo::System::default();
+            system.refresh_all();
+
+            match system.process(Pid::from_u32(pid)) {
+                Some(p) => {
+                    p.name().to_string()
+                },
+                None => {
+                    String::from("")
+                }
+            }
+        };
+
         record.push_back(LopxyProxyRequestStatus {
             timestamp: self.status_refresh_timestamp,
             pid,
+            bin_name: bin_name,
             path,
             status
         });
@@ -330,31 +352,44 @@ impl LopxyEnv {
     ///
     /// Get lopxy status
     /// 
-    pub fn lopxy_status(&mut self, timestamp: i64) -> String {
+    pub fn lopxy_status(&mut self, config_timestamp: i64, status_log_timestamp: i64) -> String {
         let start_args = self.start_args().unwrap();
         
         let mut report = LopxyStatusReport {
+            success: true,
             web_manager_port: start_args.web_manager_port,
             proxy_port: start_args.proxy_port,
             proxy_enabled: proxy::ProxyConfig::is_system_proxy_enabled(),
             updated: false,
-            timestamp: timestamp,
-            request_status_logs: vec![]
+            status_log_timestamp: status_log_timestamp,
+            request_status_logs: vec![],
+            config_timestamp: config_timestamp,
+            proxy_items: vec![]
         };
 
-        if self.status_refresh_timestamp > timestamp {
+        if self.status_refresh_timestamp > status_log_timestamp {
             report.updated = true;
-            report.timestamp = self.status_refresh_timestamp;
+            report.status_log_timestamp = self.status_refresh_timestamp;
 
             let records = &*self.request_status_logs.lock().unwrap();
             for item in records {
-                if item.timestamp > timestamp {
+                if item.timestamp > status_log_timestamp {
                     report.request_status_logs.push(item.report());
                 }
             }
         }
 
-        serde_json::to_string(&report).unwrap_or("{\"updated\": false}".to_string())
+        let config = self.load_config();
+        if config.timestamp() > config_timestamp {
+            report.updated = true;
+            report.config_timestamp = config.timestamp();
+
+            for item in config.proxy_item_list() {
+                report.proxy_items.push(item.clone())
+            }
+        }
+
+        serde_json::to_string(&report).unwrap_or("{\"success\": false}".to_string())
     }
 }
 

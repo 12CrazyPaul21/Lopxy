@@ -1,17 +1,20 @@
 #![allow(dead_code)]
 
+use chrono::prelude::*;
 use serde_derive::{Serialize, Deserialize};
 
 use super::proxy::item::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LopxyConfig {
+    timestamp: i64,
     proxy_items: Vec<ProxyItem>
 }
 
 impl LopxyConfig {
     pub fn new() -> LopxyConfig {
         LopxyConfig {
+            timestamp: 0,
             proxy_items: vec![]
         }
     }
@@ -41,6 +44,14 @@ impl LopxyConfig {
         };
 
         std::fs::write(path, &desc)
+    }
+
+    pub fn timestamp(&self) -> i64 {
+        self.timestamp
+    }
+
+    pub fn update_timestamp(&mut self) {
+        self.timestamp = Local::now().timestamp_millis();
     }
 
     pub fn proxy_item_list<'a>(&'a self) -> &'a Vec<ProxyItem> {
@@ -85,6 +96,7 @@ impl LopxyConfig {
         }
 
         self.proxy_items.push(ProxyItem::new(resource_url, proxy_resource_url, content_type));
+        self.update_timestamp();
 
         true
     }
@@ -95,6 +107,7 @@ impl LopxyConfig {
         }
 
         self.proxy_items.retain(|item: &ProxyItem| item.resource_url().ne(resource_url));
+        self.update_timestamp();
 
         true
     }
@@ -104,7 +117,7 @@ impl LopxyConfig {
             return false;
         }
 
-        if !self.proxy_items.iter_mut().any(|item: &mut ProxyItem| {
+        if self.proxy_items.iter_mut().any(|item: &mut ProxyItem| {
             if !item.resource_url().eq(resource_url) {
                 return false;
             }
@@ -114,6 +127,8 @@ impl LopxyConfig {
 
             true
         }) {
+            self.update_timestamp();
+        } else {
             return self.add_proxy_item(resource_url, proxy_resource_url, content_type);
         }
 

@@ -1,4 +1,5 @@
 body {
+    color: #212529;
     background-color: #e62b60;
     text-align: center;
 }
@@ -7,10 +8,88 @@ body {
     width: 100%;
 }
 
-.lopxy-splash-screen {
+.lopxy-hide {
+    display: none;
+}
+
+.lopxy-table {
+    word-break: break-all;
+    word-wrap: break-all;
+}
+
+.lopxy-table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.lopxy-panel {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.lopxy-panel-header {
+    color: #212529;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row;
+}
+
+.lopxy-panel-header a {
+    color: rgb(238, 238, 238);
+}
+
+.lopxy-panel-container {
+    border: 2px solid black;
+    border-radius: 6px;
+}
+
+.lopxy-panel-container table {
+    border-radius: 4px;
+    margin: 0;
+}
+
+#lopxy-splash-screen, #lopxy-shutdown-screen {
     position: fixed;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
+}
+
+#lopxy-web-manager-container {
+    width: 100%;
+    padding: 20px;
+}
+
+#lopxy-web-manager-header {
+    margin-bottom: 8px;
+    text-align: right;
+}
+
+#lopxy-web-manager-header span {
+    position: relative;
+    top: 5px;
+}
+
+#lopxy-web-manager-header a {
+    color: #212529;
+}
+
+#lopxy-web-manager-footer a {
+    color: black;
+}
+
+#lopxy-proxy-items-table {
+    table-layout:fixed;
+}
+
+#lopxy-proxy-items-table tr {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#lopxy-request-status-logs-table tr {
+    text-align: center;
+    vertical-align: middle;
 }
